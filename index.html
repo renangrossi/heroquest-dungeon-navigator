@@ -296,10 +296,15 @@
 				var helpLinks = document.getElementById('help_link_list');
 				while(helpLinks.firstChild) helpLinks.removeChild(helpLinks.firstChild);
 				
+				// Every pack numbers its guides from h1, and showHelp() finds the image
+				// by getElementById, so guides left here by a previously opened pack
+				// shadow this one's. Clear them like the link list above.
+				var helpImages = document.getElementById('quest_help');
+				while(helpImages.firstChild) helpImages.removeChild(helpImages.firstChild);
+				
 				var rotation = '';
 				
 				if(questList[questPack].help) {
-					var helpImages = document.getElementById('quest_help');
 					for(var helpItem in questList[questPack].help) {
 						if(questList[questPack].help[helpItem].rotation) rotation = ' class="' + questList[questPack].help[helpItem].rotation + '"';
 						else rotation = '';
