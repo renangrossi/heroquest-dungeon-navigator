@@ -66,9 +66,16 @@
 				gap: 10px;
 			}
 
-			.col_menu   { flex: 0 0 200px; }
-			.col_room   { flex: 1 1 auto; min-width: 0; }   /* min-width:0 lets a wide scan shrink */
-			.col_guides { flex: 0 0 200px; }
+			/* The map is what you are actually reading, so it is the last thing to
+			   give up width. The side columns carry text, which reflows: they take a
+			   shrink factor of 6 against the map's 1, so as the window narrows they
+			   lose width six times faster per pixel of basis. At 800px of column
+			   space that is 120px a side against 560px of map, rather than 200/400.
+			   The map keeps flex-shrink:1 rather than 0 so it can still yield once
+			   the sides bottom out, instead of overflowing. */
+			.col_menu   { flex: 0 6 200px; min-width: 110px; }
+			.col_room   { flex: 1 1 600px; min-width: 0; }   /* min-width:0 lets a wide scan shrink */
+			.col_guides { flex: 0 6 200px; min-width: 110px; }
 
 			.mainMenuContainer {
 				margin-left: auto;
@@ -109,7 +116,7 @@
 				display: flex;
 				align-items: center;
 				justify-content: center;
-				min-height: 610px;
+				min-height: 120px;        /* just the welcome card; otherwise hug the image */
 				margin-top: 10px;
 				padding: 4px;
 				border: 1px solid #000000;
@@ -141,7 +148,7 @@
 				justify-content: center;
 				gap: 8px;
 				min-height: 50px;
-				margin-top: 16px;
+				margin-top: 10px;
 			}
 
 			.navButton {
@@ -245,12 +252,12 @@
 
 				.layout { flex-direction: column; }
 
-				.col_menu, .col_room, .col_guides { flex: 1 1 auto; width: 100%; }
+				.col_menu, .col_room, .col_guides { flex: 1 1 auto; width: 100%; min-width: 0; }
 
 				.mainMenuContainer { margin-top: 0; }
 
 				#display_room {
-					min-height: 240px;
+					min-height: 100px;
 					margin-top: 8px;
 				}
 
@@ -266,7 +273,7 @@
 
 				#display_help_links li > div { margin-bottom: 0; }
 
-				#display_navigation { margin-top: 12px; }
+				#display_navigation { margin-top: 8px; }
 			}
 		</style>
 		<script src="js/quest.js"></script>
@@ -297,6 +304,8 @@
 								Welcome!<br>Please select a quest from the menu.
 							</div>
 						</div>
+						<div id="display_navigation">
+						</div>
 					</div>
 					<div class="col_guides">
 						<div id="display_help_links">
@@ -305,8 +314,6 @@
 							</ul>
 						</div>
 					</div>
-				</div>
-				<div id="display_navigation">
 				</div>
 			</div>
 			

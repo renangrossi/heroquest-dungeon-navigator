@@ -106,6 +106,8 @@ out to an unreadable postage stamp.
 |---|---|
 | no viewport meta | `width=device-width, initial-scale=1` |
 | `<table>` of three cells, 80% wide | flex row, `max-width: 1200px`, stacks below 860px |
+| three rigid 200px / fluid / 200px cells | the map shrinks last: side columns take `flex-shrink: 6` against its `1` |
+| exits in a row under the whole panel | inside the map column, 15px under the image |
 | `#display_room { min-width: 600px }` | fluid; `min-width: 0` on the column so a wide scan can shrink |
 | `img { max-height: 600px }` | `max-width: 100%; max-height: min(600px, 72vh)` |
 | `.navButton { display: inline }` | `inline-flex`, min 48x44px — thumb-sized |
@@ -118,10 +120,26 @@ gray exit buttons. Two behaviours were added for small screens — picking a que
 scrolls the map into view (stacked, the menu sits above it), and tapping the map
 opens it full-screen, reusing the overlay the guides already used.
 
-Verified in headless Chromium at 1440, 1024, 820, 390 and 320 px: no horizontal
-scroll at any width, the room image never exceeds its column, every exit button
-is at least 44px tall, and navigating, zooming, dismissing and switching packs
-work at all five.
+**The map is the last thing to give up width.** The side columns carry text,
+which reflows; the map does not. So they shrink six times faster per pixel of
+basis, and the black panel hugs the image rather than holding a fixed 610px
+box, which is what used to push the exit buttons so far down. Measured against
+the previous layout, at the same viewport widths:
+
+| Viewport | Menu was → now | Map was → now | Image-to-exits gap was → now |
+|---:|---|---|---|
+| 1440px | 200 → 200 | 750 → 750 | 71px → **15px** |
+| 1000px | 200 → 174 | 526 → **577** | 146px → **15px** |
+| 900px | 200 → 134 | 426 → **557** | 179px → **15px** |
+| 861px | 200 → 119 | 387 → **549** | 192px → **15px** |
+
+The old gap grew as the window narrowed, because the image shrank inside a
+fixed-height box while the buttons stayed pinned below it.
+
+Verified in headless Chromium at 1440, 1280, 1100, 1000, 950, 900, 870, 861,
+820, 600, 390 and 320 px: no horizontal scroll at any width, the room image
+never exceeds its column, every exit button is at least 44px tall, and
+navigating, zooming, dismissing and switching packs work throughout.
 
 ### The rotation trap
 
