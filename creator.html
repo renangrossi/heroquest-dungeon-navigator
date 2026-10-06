@@ -1,0 +1,665 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>
+			HeroQuest - Quest Creator Tool
+		</title>
+		<style>
+			body {
+				text-align: center;
+				background-color: #3f2f00;
+			}
+			
+			.page_header {
+				color: #ffffff;
+			}
+		
+			textarea {
+				width: 95%;
+				min-height: 600px;
+			}
+			
+			.room img {
+				max-height: 300px;
+				max-width: 600px;
+				margin-left: 100px;
+			}
+			
+			.help_item img {
+				max-height: 300px;
+				max-width: 700px;
+				margin-left: 100px;
+			}
+			
+			.rotate90 {
+				-ms-transform: rotate(90deg); /* IE 9 */
+				-webkit-transform: rotate(90deg); /* Chrome, Safari, Opera */
+				transform: rotate(90deg);
+			}
+			
+			.rotate180 {
+				-ms-transform: rotate(180deg); /* IE 9 */
+				-webkit-transform: rotate(180deg); /* Chrome, Safari, Opera */
+				transform: rotate(180deg);
+			}
+			
+			.rotate270 {
+				-ms-transform: rotate(270deg); /* IE 9 */
+				-webkit-transform: rotate(270deg); /* Chrome, Safari, Opera */
+				transform: rotate(270deg);
+			}
+			
+			#quest_definition {
+				margin-left: 50px;
+			}
+			
+			.room {
+				background-color: #dddddd;
+				border: 1px;
+				border-color: #000000;
+				border-style: solid;
+				width: 720px;
+				margin: 10px 10px 10px 10px;
+			}
+			
+			.new_room {
+				background-color: #dddddd;
+				border: 1px;
+				border-color: #000000;
+				border-style: solid;
+				width: 720px;
+				margin: 10px 10px 10px 10px;
+			}
+			
+			.quest {
+				background-color: #bbbbbb;
+				border: 1px;
+				border-color: #000000;
+				border-style: solid;
+				max-width: 742px;
+				margin: 10px 10px 10px 10px;
+			}
+			
+			.new_quest {
+				background-color: #bbbbbb;
+				border: 1px;
+				border-color: #000000;
+				border-style: solid;
+				width: 742px;
+				margin: 10px 10px 10px 10px;
+			}
+			
+			.quest_header {
+				background-color: #bbbbbb;
+				border: 1px;
+				border-color: #000000;
+				border-style: solid;
+				width: 732px;
+				margin: 10px 10px 10px 10px;
+				padding: 5px;
+			}
+			
+			.quest_pack {
+				background-color: #dddddd;
+				border: 1px;
+				border-color: #000000;
+				border-style: solid;
+				min-width: 764px;
+				max-width: 764px;
+				margin: 10px 10px 10px 10px;
+			}
+			
+			.new_quest_pack {
+				background-color: #dddddd;
+				border: 1px;
+				border-color: #000000;
+				border-style: solid;
+				min-width: 764px;
+				max-width: 764px;
+				margin: 10px 10px 10px 10px;
+			}
+			
+			.quest_pack_header {
+				background-color: #dddddd;
+				border: 1px;
+				border-color: #000000;
+				border-style: solid;
+				min-width: 754px;
+				max-width: 754px;
+				margin: 10px 10px 10px 10px;
+				padding: 5px;
+			}
+			
+			.help_item {
+				background-color: #dddddd;
+				border: 1px;
+				border-color: #000000;
+				border-style: solid;
+				width: 742px;
+				margin: 10px 10px 10px 10px;
+			}
+			
+			.new_help {
+				background-color: #dddddd;
+				border: 1px;
+				border-color: #000000;
+				border-style: solid;
+				width: 742px;
+				margin: 10px 10px 10px 10px;
+			}
+			
+			.download_button {
+				text-decoration: none;
+				color: #000000;
+			}
+			.download_button p {
+				background-color: #dddddd;
+				border: 1px;
+				border-color: #000000;
+				border-style: solid;
+				width: 100px;
+				padding: 5px;
+				text-decoration: none;
+				text-align: center;
+				margin-left: 100px;
+			}
+			
+			.rights_information {
+				color: #ffffff;
+				font-size: 8pt;
+			}
+		</style>
+		<script src="js/quest.js"></script>
+	</head>
+	<body>
+		<div>
+			<img src="source/heroquest-logo.png" />
+			<br>
+			<h1 style="color: #ffffff;">Digitial Dungeon Navigator</h3>
+		</div>
+		<div>
+			<p class="page_header">
+				This is an authoring tool for the quest data in quest.js.  Once you have made your changes, save the file or copy from the textarea at the bottom of the page into js/quest.js.  The next time you load the main page, your changes will be made.
+			</p>
+		</div>
+		
+		<div id="quest_definition">
+		</div>
+		
+		<div id="quest_paste_container">
+			<a class="download_button" download="quest.js" id="quest_download">
+				<p>
+					Save to File
+				</p>
+			</a>
+			<textarea id="quest_paste" name="quest_paste" readonly></textarea>
+		</div>
+		
+		<p class="rights_information">
+			Original Digital Dungeonmaster files created by Chris Marlow (marlowc).<br>
+			Programming by David Allison (lastgunslinger)<br>
+			HeroQuest&trade;	is the property of Milton Bradley and Games Workshop<br><br>
+			Version 0.9
+		</p>
+		
+		<script>
+			var toggleMap = {};
+			var questDownload = null;
+			
+			refreshQuest();
+
+		
+			function loadRoom(questPack,quest,room) {
+				var output = '';
+				var rotation = '';
+				if(questList[questPack].quests[quest].rooms[room].rotation) rotation = ' class="' + questList[questPack].quests[quest].rooms[room].rotation + '"';
+				
+				output += '<div class="room"><img src="' + questList[questPack].folder + '/' + questList[questPack].quests[quest].folder+ '/' + questList[questPack].quests[quest].rooms[room].file + '"' + rotation + ' id="' + questPack + '_' + quest + '_' + room + '_file" /> <input type="button" style="float: right; text-align:top;" value="Remove" onclick="removeRoom(\'' + questPack + '\', \''+quest+'\', \''+room+'\')" /><br>';
+				output += '<table>';
+				output += '<tr><td>File: </td><td><input type="file" value="' + questList[questPack].quests[quest].rooms[room].file + '" onchange="updateRoom(this, \'' + questPack + '\', \'' + quest + '\', \''+ room + '\', \'file\', \'' + questList[questPack].quests[quest].rooms[room].file + '\', this.value)" /></td></tr>';
+				output += '<tr><td>Room: </td><td><input type="text" value="'+ room +'" onchange="updateRoom(this, \'' + questPack + '\', \'' + quest + '\', \''+ room + '\', \'room\', \'' + room + '\', this.value)"/></td></tr>';
+				output += '<tr><td>Rotation: </td><td><select onchange="updateRoom(this, \'' + questPack + '\', \'' + quest + '\', \''+ room + '\', \'rotation\', \'' + questList[questPack].quests[quest].rooms[room].rotation + '\', this.options[this.selectedIndex].value)"/>';
+				
+				if(questList[questPack].quests[quest].rooms[room].rotation == null) output += '<option selected>--None--</option>';
+				else output += '<option>--None--</option>';
+				if(questList[questPack].quests[quest].rooms[room].rotation == 'rotate90') output += '<option value="rotate90" selected>90 degrees</option>';
+				else output += '<option value="rotate90">90 degrees</option>';
+				if(questList[questPack].quests[quest].rooms[room].rotation == 'rotate180') output += '<option value="rotate180" selected>180 degrees</option>';
+				else output += '<option value="rotate180">180 degrees</option>';
+				if(questList[questPack].quests[quest].rooms[room].rotation == 'rotate270') output += '<option value="rotate270" selected>270 degrees</option>';
+				else output += '<option value="rotate270">270 degrees</option>';
+				output += '</select></td></tr>';
+				output += '<tr><td>Connections: </td><td><input type="text" value="'+ questList[questPack].quests[quest].rooms[room].connections +'" onchange="updateRoom(this, \'' + questPack + '\', \'' + quest + '\', \''+ room + '\', \'connections\', \'' + questList[questPack].quests[quest].rooms[room].connections + '\', this.value)"/></td></tr></table></div>';
+				
+				return output;
+			}
+			
+			function addRoom(questPack, quest) {
+				var room = document.getElementById(questPack + '_' + quest +'_add_room_room');
+				var file = document.getElementById(questPack + '_' + quest +'_add_room_file');
+				var rotation = document.getElementById(questPack + '_' + quest +'_add_room_rotation');
+				var connections = document.getElementById(questPack + '_' + quest +'_add_room_connections');
+				
+				if(!questList[questPack].quests[quest].rooms[room.value]) {
+					questList[questPack].quests[quest].rooms[room.value] = {};
+					
+					var filePath = file.value.toString().replace(/^.*(\\|\/|\:)/, '');
+					filePath = filePath.replace(/ /g,'%20');
+					filePath = filePath.replace(/'/g, '%27');
+					
+					questList[questPack].quests[quest].rooms[room.value].file = filePath;
+					questList[questPack].quests[quest].rooms[room.value].rotation = rotation.options[rotation.selectedIndex].value;
+					questList[questPack].quests[quest].rooms[room.value].connections = connections.value;
+					
+					refreshQuest();
+				}
+				else alert('Room already exists');
+			}
+			
+			function updateRoom(formElement, questPack, quest, room, field, oldValue, newValue) {
+				var currentRoom = room;
+				if(field == 'room' && oldValue != newValue) {
+					if(questList[questPack].quests[quest].rooms[newValue]) {
+						formElement.value = oldValue;
+					}
+					else {
+						Object.defineProperty(questList[questPack].quests[quest].rooms, newValue, Object.getOwnPropertyDescriptor(questList[questPack].quests[quest].rooms, oldValue));
+						delete questList[questPack].quests[quest].rooms[oldValue];
+						currentRoom = newValue;
+					}
+				}
+				else if(field == 'file') {
+					var filePath = newValue.replace(/^.*(\\|\/|\:)/g, '');
+					filePath = filePath.replace(/ /g,'%20');
+					filePath = filePath.replace(/'/g, '%27');
+					
+					questList[questPack].quests[quest].rooms[room].file = filePath;
+				}
+				else {
+					questList[questPack].quests[quest].rooms[room][field] = newValue;
+				}
+				
+				refreshQuest();
+			}
+			
+			
+			function removeRoom(questPack, quest, room) {
+				delete questList[questPack].quests[quest].rooms[room];
+				
+				refreshQuest();
+			}
+		
+			function loadQuest(questPack, quest) {
+				var output = '';
+				
+				if(!toggleMap[questPack].quests[quest]) {
+					toggleMap[questPack].quests[quest] = 'display: none;';
+				}
+				
+				output += '<div class="quest_header" onclick="toggleQuest(\''+ questPack + '\', \'' + quest + '\')">' +questList[questPack].quests[quest].name + '</div>';
+				output += '<div class="quest" id="'+ questPack + '_' + quest + '_container" style="' + toggleMap[questPack].quests[quest] + '"><input type="button" style="float: right; text-align: top;" value="Remove" onclick="removeQuest(\''+questPack+'\',\''+quest+'\')" /><table>';
+				output += '<tr><td>Quest: </td><td><input type="text" value="' + quest + '" onchange="updateQuest(this, \''+ questPack + '\', \'' + quest + '\', \'quest\', \'' + quest + '\', this.value)"></td></tr>';
+				output += '<tr><td>Name: </td><td><input type="text" value="' + questList[questPack].quests[quest].name + '" onchange="updateQuest(this, \''+ questPack + '\', \'' + quest + '\', \'name\', \'' + questList[questPack].quests[quest].name.replace(/\'/,'\\\'') + '\', this.value)"></td></tr>';
+				output += '<tr><td>Folder: </td><td><input type="text" value="' + questList[questPack].quests[quest].folder + '" onchange="updateQuest(this, \''+ questPack + '\', \'' + quest + '\', \'folder\', \'' + questList[questPack].quests[quest].folder + '\', this.value)"></td></tr></table>';
+				
+				var roomNumber = 0;
+				
+				for(var i in questList[questPack].quests[quest].rooms) {
+					if(parseInt(i.substr(1),10) > roomNumber) roomNumber = parseInt(i.substr(1),10);
+					output += loadRoom(questPack, quest, i);
+				}
+				
+				output += '<div class="new_room">';
+				output += '<p>Add Room</p>';
+				output += '<table>';
+				output += '<tr><td>File: </td><td><input id="'+ questPack + '_' + quest +'_add_room_file" type="file" /></td></tr>';
+				output += '<tr><td>Room: </td><td><input id="'+ questPack + '_' + quest +'_add_room_room" type="text" value="r' + (roomNumber+1) + '"/></td></tr>';
+				output += '<tr><td>Rotation: </td><td><select id="'+ questPack + '_' + quest +'_add_room_rotation" />';
+				output += '<option>--None--</option>';
+				output += '<option value="rotate90">90 degrees</option>';
+				output += '<option value="rotate180">180 degrees</option>';
+				output += '<option value="rotate270">270 degrees</option>';
+				output += '</select></td></tr>';
+				output += '<tr><td>Connections: </td><td><input id="'+ questPack + '_' + quest +'_add_room_connections" type="text" /></td></tr>';
+				output += '<tr><td>&nbsp; </td><td><input type="button" value="Add" onclick="addRoom(\''+ questPack + '\', \'' + quest + '\')" /></td></tr></table></div>';
+				
+				output += '</div>';
+				
+				return output;
+			}
+			
+			function toggleQuest(questPack, quest) {
+				var questBlock = document.getElementById(questPack + '_' + quest + '_container');
+				if(questBlock.style) {
+					if(questBlock.style.display == 'block') {
+						questBlock.style.display = 'none';
+						toggleMap[questPack].quests[quest] = 'display: none;';
+					}
+					else {
+						questBlock.style.display = 'block';
+						toggleMap[questPack].quests[quest] = 'display: block;';
+					}
+				}
+				else questBlock.style.display = 'none';
+			}
+			
+			function addQuest(questPack) {
+				var number = document.getElementById(questPack + '_add_quest_quest');
+				var name = document.getElementById(questPack + '_add_quest_name');
+				var folder = document.getElementById(questPack + '_add_quest_folder');
+				
+				if(!questList[questPack].quests[number.value]) {
+					questList[questPack].quests[number.value] = {};
+					questList[questPack].quests[number.value].name = name.value;
+					questList[questPack].quests[number.value].rooms = [];
+					
+					var filePath = folder.value.toString().replace(/^.*(\\|\/|\:)/g, '');
+					filePath = filePath.replace(/ /g,'%20');
+					filePath = filePath.replace(/'/g, '%27');
+					
+					questList[questPack].quests[number.value].folder = filePath;
+					
+					refreshQuest();
+				}
+				else alert('Quest already exists');
+			}
+			
+			function updateQuest(formElement, questPack, quest, field, oldValue, newValue) {
+				var currentQuest = quest;
+				if(field == 'quest' && oldValue != newValue) {
+					if(questList[questPack].quests[newValue]) {
+						formElement.value = oldValue;
+					}
+					else {
+						Object.defineProperty(questList[questPack].quests, newValue, Object.getOwnPropertyDescriptor(questList[questPack].quests, oldValue));
+						delete questList[questPack].quests[oldValue];
+						currentQuest = newValue;
+					}
+				}
+				else if(field == 'folder') {
+					var filePath = newValue.replace(/^.*(\\|\/|\:)/g, '');
+					filePath = filePath.replace(/ /g,'%20');
+					filePath = filePath.replace(/'/g, '%27');
+					
+					questList[questPack].quests[quest].folder = filePath;
+				}
+				else {
+					questList[questPack].quests[quest][field] = newValue;
+				}
+				
+				refreshQuest();
+			}
+			
+			function removeQuest(questPack, quest) {
+				delete questList[questPack].quests[quest];
+				
+				refreshQuest();
+			}
+			
+			function loadQuestPack(questPack) {
+				var output = '';
+				
+				if(!toggleMap[questPack]) {
+					toggleMap[questPack] = {};
+					toggleMap[questPack].toggle = 'display: none;';
+					toggleMap[questPack].quests = {};
+				}
+				
+				output += '<div class="quest_pack_header" onclick="toggleQuestPack(\'' + questPack + '\')">' + questList[questPack].name + '</div>';
+				output += '<div class="quest_pack" id="' + questPack + '_container" style="' + toggleMap[questPack].toggle + '">';
+				output += '<input type="button" style="float: right; text-align: top;" value="Remove" onclick="removeQuestPack(\''+ questPack + '\')" /><table>';
+				output += '<tr><td>Name: </td><td><input type="text" value="' + questList[questPack].name + '" onchange="updateQuestPack(this, \'' + questPack + '\', \'name\', \''+ questList[questPack].name.replace(/\'/,'') + '\', this.value)" /></td></tr>';
+				output += '<tr><td>Folder: </td><td><input type="text" value="' + questList[questPack].folder + '" onchange="updateQuestPack(this, \'' + questPack + '\', \'folder\', \''+ questList[questPack].folder + '\', this.value)" /></td></tr>';
+				output += '</table>';
+				
+				var helpNumber = 0;
+				
+				for(var helpItem in questList[questPack].help) {
+					if(parseInt(helpItem.substr(1),10) > helpNumber) helpNumber = parseInt(helpItem.substr(1),10);
+					output += loadHelp(questPack, helpItem);
+				}
+				
+				output += '<div class="new_help"><p>Add Help</p>';
+				output += '<table>';
+				output += '<tr><td>Help: </td><td><input type="text" id="' + questPack + '_add_help_help" value="h' + (helpNumber+1) + '"/></td></tr>';
+				output += '<tr><td>Name: </td><td><input type="text" id="' + questPack + '_add_help_name" /></td></tr>';
+				output += '<tr><td>File: </td><td><input type="file" id="' + questPack + '_add_help_file" /></td></tr>';
+				output += '<tr><td>Rotation: </td><td><select id="' + questPack + '_add_help_rotation" />';
+				output += '<option>--None--</option>';
+				output += '<option value="rotate90">90 degrees</option>';
+				output += '<option value="rotate180">180 degrees</option>';
+				output += '<option value="rotate270">270 degrees</option>';
+				output += '</select></td></tr>';
+				output += '<tr><td>&nbsp; </td><td><input type="button" value="add" onclick="addHelp(\'' + questPack + '\')" /></td></tr>';
+				output += '</table></div>';
+				
+				var questNumber = 0;
+				
+				for(var quest in questList[questPack].quests) {
+					if(parseInt(quest.substr(1),10) > questNumber) questNumber = parseInt(quest.substr(1),10);
+					output += loadQuest(questPack, quest);
+				}
+				
+				output += '<div class="new_quest">';
+				output += '<p>Add Quest</p>';
+				output += '<table>';
+				
+				output += '<tr><td>Quest: </td><td><input type="text" id="' + questPack + '_add_quest_quest" value="q' + (questNumber+1) + '"/></td><tr>';
+				output += '<tr><td>Name: </td><td><input type="text" id="' + questPack + '_add_quest_name" /></td><tr>';
+				output += '<tr><td>Folder: </td><td><input type="text" id="' + questPack + '_add_quest_folder" /></td><tr>';
+				output += '<tr><td>&nbsp; </td><td><input type="button" value="Add" onclick="addQuest(\'' + questPack + '\')" /></td></tr></table></div></div>';
+				
+				return output;
+			}
+			
+			function toggleQuestPack(questPack) {
+				var questPackBlock = document.getElementById(questPack + '_container');
+				if(questPackBlock.style) {
+					if(questPackBlock.style.display == 'block') {
+						questPackBlock.style.display = 'none';
+						toggleMap[questPack].toggle = 'display: none;';
+					}
+					else {
+						questPackBlock.style.display = 'block';
+						toggleMap[questPack].toggle = 'display: block;';
+					}
+				}
+				else questPackBlock.style.display = 'none';
+			}
+			
+			function addQuestPack() {
+				var name = document.getElementById('add_quest_pack_name');
+				var folder = document.getElementById('add_quest_pack_folder');
+				
+				if(!questList[name.value.replace(/\'/g,'')]) {
+					questList[name.value.replace(/\'/g,'')] = {};
+					questList[name.value.replace(/\'/g,'')].name = name.value.replace(/\'/g,'\'');
+					
+					var filePath = folder.value.toString().replace(/^.*(\\|\/|\:)/g, '');
+					filePath = filePath.replace(/ /g,'%20');
+					filePath = filePath.replace(/'/g, '%27');
+					
+					questList[name.value.replace(/\'/,'')].folder = filePath;
+					questList[name.value.replace(/\'/,'')].quests = {};
+					questList[name.value.replace(/\'/,'')].help = {};
+					
+					refreshQuest();
+				}
+				else alert('Quest Pack already exists.');
+			}
+			
+			function updateQuestPack(formElement, questPack, field, oldValue, newValue) {
+				var currentQuestPack = questPack;
+				if(field == 'name' && oldValue != newValue.replace(/\'/g,'\\\'')) {
+					if(questList[newValue.replace(/\'/g,'')]) {
+						formElement.value = oldValue;
+					}
+					else {
+						Object.defineProperty(questList, newValue.replace(/\'/g,''), Object.getOwnPropertyDescriptor(questList, oldValue.replace(/\'/,'')));
+						delete questList[oldValue.replace(/\'/g,'')];
+						questList[newValue.replace(/\'/g,'')].name = newValue.replace(/\'/g,'\'');
+						currentQuestPack = newValue.replace(/\'/g,'\\\'');
+					}
+				}
+				else if(field == 'folder') {
+					var filePath = newValue.replace(/^.*(\\|\/|\:)/g, '');
+					filePath = filePath.replace(/ /g,'%20');
+					filePath = filePath.replace(/'/g, '%27');
+					
+					questList[questPack].folder = filePath;
+				}
+				else {
+					questList[questPack][field] = newValue;
+				}
+				
+				refreshQuest();
+			}
+			
+			function removeQuestPack(questPack) {
+				delete questList[questPack];
+				
+				refreshQuest();
+			}
+			
+			function loadHelp(questPack, help) {
+				var output = '';
+				var rotation = '';
+				if(questList[questPack].help[help].rotation) rotation = ' class="' + questList[questPack].help[help].rotation + '"';
+				
+				output += '<div class="help_item"><img src="' + questList[questPack].folder + '/' + questList[questPack].help[help].file + '"' + rotation + '" /><input type="button" style="float: right; text-align: top;" value="Remove" onclick="removeHelp(\'' + questPack + '\', \'' + help + '\')" />';
+				output += '<table>';
+				output += '<tr><td>Help: </td><td><input type="text" value="' + help + '" onchange="updateHelp(this, \'' + questPack + '\', \'' + help + '\', \'help\', \'' + help + '\', this.value)"/></td></tr>';
+				output += '<tr><td>File: </td><td><input type="file" value="' + questList[questPack].help[help].file + '" onchange="updateHelp(this, \'' + questPack + '\', \'' + help + '\', \'file\', \'' + questList[questPack].help[help].file + '\', this.value)"/></td></tr>';
+				output += '<tr><td>Name: </td><td><input type="text" value="' + questList[questPack].help[help].name + '" onchange="updateHelp(this, \'' + questPack + '\', \'' + help + '\', \'name\', \'' + questList[questPack].help[help].name.replace(/\'/,'\\\'') + '\', this.value)"/></td></tr>';
+				output += '<tr><td>Rotation: </td><td><select onchange="updateHelp(this, \'' + questPack + '\', \'' + help + '\', \'rotation\', \'' + questList[questPack].help[help].rotation + '\', this.options[this.selectedIndex].value)"/>';
+				
+				if(questList[questPack].help[help].rotation == null) output += '<option selected>--None--</option>';
+				else output += '<option>--None--</option>';
+				if(questList[questPack].help[help].rotation == 'rotate90') output += '<option value="rotate90" selected>90 degrees</option>';
+				else output += '<option value="rotate90">90 degrees</option>';
+				if(questList[questPack].help[help].rotation == 'rotate180') output += '<option value="rotate180" selected>180 degrees</option>';
+				else output += '<option value="rotate180">180 degrees</option>';
+				if(questList[questPack].help[help].rotation == 'rotate270') output += '<option value="rotate270" selected>270 degrees</option>';
+				else output += '<option value="rotate270">270 degrees</option>';
+				output += '</select></td></tr>';
+				
+				output += '</table></div>';
+				
+				return output;
+			}
+			
+			function addHelp(questPack) {
+				var help = document.getElementById(questPack + '_add_help_help');
+				var name = document.getElementById(questPack + '_add_help_name');
+				var rotation = document.getElementById(questPack + '_add_help_rotation');
+				var file = document.getElementById(questPack + '_add_help_file');
+				
+				if(!questList[questPack].help[help.value]) {
+					questList[questPack].help[help.value] = {};
+					questList[questPack].help[help.value].name = name.value;
+					questList[questPack].help[help.value].rotation = rotation.options[rotation.selectedIndex].value;
+					
+					var filePath = file.value.toString().replace(/^.*(\\|\/|\:)/g, '');
+					filePath = filePath.replace(/ /g,'%20');
+					filePath = filePath.replace(/'/g, '%27');
+					
+					questList[questPack].help[help.value].file = filePath;
+					
+					refreshQuest();
+				}
+				else alert('Help already exists');
+			}
+			
+			function updateHelp(formElement, questPack, helpItem, field, oldValue, newValue) {
+				var currentHelp = helpItem;
+				if(field == 'help' && oldValue != newValue) {
+					if(questList[questPack].help[newValue]) {
+						formElement.value = oldValue;
+					}
+					else {
+						Object.defineProperty(questList[questPack].help, newValue, Object.getOwnPropertyDescriptor(questList[questPack].help, oldValue));
+						delete questList[questPack].help[oldValue];
+						currentHelp = newValue;
+					}
+				}
+				else if(field == 'file') {
+					var filePath = newValue.replace(/^.*(\\|\/|\:)/g, '');
+					filePath = filePath.replace(/ /g,'%20');
+					filePath = filePath.replace(/'/g, '%27');
+					
+					questList[questPack].help[helpItem].file = filePath;
+				}
+				else {
+					questList[questPack].help[helpItem][field] = newValue;
+				}
+				
+				refreshQuest();
+			}
+			
+			function removeHelp(questPack, help) {
+				delete questList[questPack].help[help];
+				
+				refreshQuest();
+			}
+			
+			function loadAll() {
+				var output = '';
+				
+				output += '<div class="main_container">';
+				
+				for(var questPack in questList) {
+					output += loadQuestPack(questPack);
+				}
+				
+				output += '<div class="new_quest_pack"><p>Add Quest Pack</p>';
+				output += '<table>';
+				output += '<tr><td>Name: </td><td><input type="text" id="add_quest_pack_name"/></td></tr>';
+				output += '<tr><td>Folder: </td><td><input type="text" id="add_quest_pack_folder"/></td></tr>';
+				output += '<tr><td>&nbsp; </td><td><input type="button" value="Add" onclick="addQuestPack()" /></td></tr></table>';
+				output += '</div>';
+				
+				return output;
+			}
+		
+			function loadObject(obj, depth) {
+				var output = '';
+				var isFirst = true;
+				
+				if(!depth) depth = 0;
+				
+				if(typeof obj == 'object') {
+					output += '{';
+					for(var i in obj) {
+						if(!isFirst) output += ',\n';
+						else {
+							output += '\n';
+							isFirst = false;
+						}
+						for(var j=0; j<depth; j++) output += '  ';
+						
+						output += '\''+ i + '\':' + loadObject(obj[i], depth+1);
+					}
+					output += '\n';
+					for(var j=0; j<depth-1; j++) output += '  ';
+					output += '}';
+				}
+				else output += '\'' + obj.replace(/\'/g,'\\\'') + '\'';
+				
+				return output;
+			}
+			
+			function refreshQuest() {
+				document.getElementById('quest_definition').innerHTML = loadAll();
+				document.getElementById('quest_paste').value = 'var questList = ' + loadObject(questList, 1);
+				
+				var bin = new Blob([document.getElementById('quest_paste').value], {type: 'text/plain'});
+				if(questDownload != null) window.URL.revokeObjectURL(questDownload);
+				
+				questDownload = window.URL.createObjectURL(bin);
+				document.getElementById('quest_download').href = questDownload;
+			}
+			
+		
+		</script>
+	</body>
+</html>
