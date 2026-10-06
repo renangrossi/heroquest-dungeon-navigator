@@ -53,7 +53,7 @@ Opening `index.html` straight off disk (`file://`) also works in most browsers.
 
 | File | Purpose |
 |---|---|
-| `index.html` | **The navigator.** The classic 2017 interface, with every data fix applied. |
+| `index.html` | **The navigator.** The classic 2017 interface, with every data fix applied, now responsive. |
 | `modern.html` | Alternative interface: responsive, dark, explored-room tracking, resumable links. |
 | `creator.html` | Authoring tool that emits quest data to paste into `js/quest.js`. |
 | `js/quest.js` | All quest data. The only file you edit to add content. |
@@ -91,8 +91,37 @@ but the space→hyphen rename broke it everywhere.
 | Dead ends | 4 rooms had no exits at all; you could walk in and be stuck — now 0 |
 | Rotation | See below |
 | Guide images | 8 of 9 pointed at files that no longer exist; rewired to what is on disk, and the co-op guide copied into `main-quest/`, which had none |
-| `index.html` (classic) | Clean image paths, numeric exit labels, EXIF orientation, broken rotation CSS removed |
+| `index.html` (classic) | Clean image paths, numeric exit labels, EXIF orientation, broken rotation CSS removed; fixed-width table layout replaced with a responsive one (see below) |
 | `modern.html` | New alternative interface: responsive, dark, touch-sized targets, explored-room tracking, deep links |
+
+### Making the classic interface responsive
+
+It was a 2017 desktop page: no viewport meta, an 80%-wide three-cell `<table>`,
+`#display_room { min-width: 600px }`, and `img { max-height: 600px }` with no
+`max-width`. That last one is why a wide corridor scan ran off the side of the
+page. On a phone the whole thing rendered at a 980px virtual width and zoomed
+out to an unreadable postage stamp.
+
+| Was | Now |
+|---|---|
+| no viewport meta | `width=device-width, initial-scale=1` |
+| `<table>` of three cells, 80% wide | flex row, `max-width: 1200px`, stacks below 860px |
+| `#display_room { min-width: 600px }` | fluid; `min-width: 0` on the column so a wide scan can shrink |
+| `img { max-height: 600px }` | `max-width: 100%; max-height: min(600px, 72vh)` |
+| `.navButton { display: inline }` | `inline-flex`, min 48x44px — thumb-sized |
+| menu rows ~20px tall | padded to ~32px, `cursor: pointer` |
+| guides: fixed 200px sidebar | sidebar on desktop, row of chips when stacked |
+| `.helpOn` absolute, `max-height: 800px` | full-screen overlay, image fits the viewport, tap anywhere to dismiss |
+
+The desktop layout is unchanged to the eye: same palette, same three zones, same
+gray exit buttons. Two behaviours were added for small screens — picking a quest
+scrolls the map into view (stacked, the menu sits above it), and tapping the map
+opens it full-screen, reusing the overlay the guides already used.
+
+Verified in headless Chromium at 1440, 1024, 820, 390 and 320 px: no horizontal
+scroll at any width, the room image never exceeds its column, every exit button
+is at least 44px tall, and navigating, zooming, dismissing and switching packs
+work at all five.
 
 ### The rotation trap
 
@@ -293,8 +322,3 @@ four original packs, and that §6 did for Dark Company.
   else — no monsters, traps, treasure or wandering-monster logic. Playing the
   official campaigns solo still needs a GM-less ruleset applied by hand. The Dave
   Morris quests in `../HeroQuest/` are the only genuinely solo-designed material.
-- **The classic interface keeps its fixed-width 2017 layout**, so a wide room
-  scan (long corridors, in several packs) runs past the panel and the page
-  scrolls sideways. Pre-existing behaviour of that interface; `modern.html`
-  scales each room to fit instead, and the two link to each other from the
-  header.
