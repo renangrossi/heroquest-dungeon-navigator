@@ -1,211 +1,314 @@
 <!DOCTYPE HTML>
 <html>
 	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 		<title>
 			HeroQuest - Digital Dungeon Navigator
 		</title>
 		<style>
+			*, *::before, *::after { box-sizing: border-box; }
+
 			body {
+				margin: 0;
+				padding: 0 12px 28px;
 				text-align: center;
 				background-color: #3f2f00;
+				-webkit-text-size-adjust: 100%;
 			}
-			
-			img {
-				max-height: 600px;
-				image-orientation: from-image;   /* scans carry EXIF orientation */
-			}
-			
+
 			/* The room scans carry an EXIF Orientation tag, which the browser
 			   already applies, so no rotation classes are needed here. The
 			   original rotate90 / rotate180 / rotate270 block was commented
 			   out but nested its comments, so it ended early and left two of
 			   those rules live plus a stray comment terminator behind. */
-			
-			table {
-				min-width: 80%;
-				max-width: 80%;
-				min-height: 630px;
+			img {
+				image-orientation: from-image;
+			}
+
+			.page {
+				width: 100%;
+				max-width: 1200px;
 				margin-left: auto;
 				margin-right: auto;
-				text-align: center;
-				/*border: 1px;
-				border-color: #000000;
-				border-style: solid;*/
+			}
+
+			.site_head {
+				padding-top: 14px;
+			}
+
+			.site_head img {        /* logo is 398x133 */
+				width: 100%;
+				max-width: 398px;
+				height: auto;
+			}
+
+			.site_head h1 {
+				color: #ffffff;
+				font-size: clamp(20px, 5vw, 32px);
+				margin: 10px 0 0 0;
+			}
+
+			/* ---- layout ------------------------------------------------
+			   Was a fixed 80%-wide <table> of three cells. Same three zones,
+			   now a flex row that stacks below 860px. ------------------- */
+
+			.panel {
+				margin-top: 12px;
+				padding: 10px;
 				background-color: #4f3f00;
-			}
-			
-			table td {
-				vertical-align: top;
 				text-align: center;
 			}
-			
+
+			.layout {
+				display: flex;
+				align-items: flex-start;
+				gap: 10px;
+			}
+
+			.col_menu   { flex: 0 0 200px; }
+			.col_room   { flex: 1 1 auto; min-width: 0; }   /* min-width:0 lets a wide scan shrink */
+			.col_guides { flex: 0 0 200px; }
+
 			.mainMenuContainer {
 				margin-left: auto;
 				margin-right: auto;
 				margin-top: 10px;
-				vertical-align: top;
-				width: 200px;
-				border: 1px;
-				border-color: #000000;
-				border-style: solid;
-				padding-top: 0;
-				padding-bottom: 0;
+				width: 100%;
+				border: 1px solid #000000;
 			}
-			
+
 			.mainMenuContainer ul {
 				list-style: none;
 				padding: 0 0 0 0;
 				margin: 0 0 0 0;
 			}
-			
+
 			.mainMenuContainer ul li {
 				color: #ffffff;
 				background-color: #3f3f00;
 				margin: 0px 0px 0px 0px;
-				padding: 2px 0px 2px 0px;
 			}
-			
+
 			.mainMenuContainer ul li ul li {
 				color: #ffffff;
 				background-color: #5f5f00;
-				padding: 2px 0px 2px 0px;
 			}
-			
-			#display_navigation {
-				margin-left: auto;
-				margin-right: auto;
-				text-align: center;
-				min-height: 50px;
-				margin-top: 20px;
+
+			/* the clickable text itself, padded out to a real tap target */
+			.mainMenuContainer li > div {
+				padding: 8px 6px;
+				cursor: pointer;
 			}
-			
-			.navButton {
-				display: inline;
-				padding: 10px 15px 10px 15px;
-				margin: 5px;
-				border: 1px;
-				border-color: #000000;
-				border-style: solid;
-				background-color: #dddddd;
+
+			.mainMenuContainer li > div:hover {
+				background-color: #6f6f10;
 			}
-			
+
 			#display_room {
-				/*min-width: 900px;
-				max-width: 900px;*/
-				min-width: 600px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
 				min-height: 610px;
-				max-height: 610px;
 				margin-top: 10px;
-				border: 1px;
-				border-color: #000000;
-				border-style: solid;
+				padding: 4px;
+				border: 1px solid #000000;
 				background-color: #000000;
+				overflow: hidden;
 			}
-			
+
+			#display_room img {
+				max-width: 100%;                  /* a wide corridor scan shrinks instead of
+				                                     running off the side of the page */
+				max-height: min(600px, 72vh);
+				width: auto;
+				height: auto;
+				cursor: zoom-in;
+			}
+
+			.welcome {
+				color: #ffffff;
+				max-width: 400px;
+				margin: 0 auto;
+				padding: 20px;
+				font-size: clamp(17px, 3.5vw, 24px);
+				font-weight: bold;
+			}
+
+			#display_navigation {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: center;
+				gap: 8px;
+				min-height: 50px;
+				margin-top: 16px;
+			}
+
+			.navButton {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				min-width: 48px;
+				min-height: 44px;            /* thumb-sized, for playing off a tablet */
+				padding: 10px 15px;
+				border: 1px solid #000000;
+				background-color: #dddddd;
+				color: #000000;
+				cursor: pointer;
+				user-select: none;
+				-webkit-user-select: none;
+			}
+
+			.navButton:hover  { background-color: #ffffff; }
+			.navButton:active { background-color: #bbbbbb; }
+
 			#display_help_links {
-				min-width: 200px;
-				max-width: 200px;
+				width: 100%;
 				margin-top: 10px;
-				/*border: 1px;
-				border-color: #000000;
-				border-style: solid;*/
 			}
-			
+
 			#display_help_links ul {
 				list-style: none;
 				padding: 0 0 0 0;
 				margin: 0 0 0 0;
 				color: #ffffff;
 			}
-			
+
+			#display_help_links li > div {
+				padding: 8px 6px;
+				margin-bottom: 6px;
+				border: 1px solid #000000;
+				background-color: #3f3f00;
+				cursor: pointer;
+			}
+
+			#display_help_links li > div:hover {
+				background-color: #6f6f10;
+			}
+
 			.helpOff {
 				display: none;
 			}
-			
+
+			/* full-screen overlay: tap anywhere to dismiss */
 			.helpOn {
-				width: 95%;
-				margin-left: 2.5%;
-				position: absolute;
-				top: 50px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				position: fixed;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
+				z-index: 50;
+				padding: 16px;
+				overflow: auto;
+				background-color: rgba(0, 0, 0, 0.88);
+				cursor: zoom-out;
 			}
-			
+
 			.helpOn img {
-				margin-left: auto;
-				margin-right: auto;
-				max-height: 800px;
-				border: 2px;
-				border-color: #000000;
-				border-style: solid;
+				max-width: 100%;
+				max-height: 100%;
+				width: auto;
+				height: auto;
+				border: 2px solid #000000;
 			}
-			
+
 			.ui_switch {
 				margin-top: 8px;
 				font-size: 10pt;
 			}
-			
+
 			.ui_switch a {
+				display: inline-block;
 				color: #c9a227;
 				text-decoration: none;
 				border: 1px solid #6b5410;
 				border-radius: 4px;
-				padding: 4px 10px;
+				padding: 7px 12px;
 				background-color: #4f3f00;
 			}
-			
+
 			.ui_switch a:hover {
 				border-color: #c9a227;
 			}
-			
+
 			.rights_information {
 				color: #ffffff;
 				font-size: 8pt;
+			}
+
+			/* ---- stacked, for phones and portrait tablets -------------- */
+			@media (max-width: 860px) {
+				body { padding: 0 8px 20px; }
+
+				.layout { flex-direction: column; }
+
+				.col_menu, .col_room, .col_guides { flex: 1 1 auto; width: 100%; }
+
+				.mainMenuContainer { margin-top: 0; }
+
+				#display_room {
+					min-height: 240px;
+					margin-top: 8px;
+				}
+
+				#display_room img { max-height: 68vh; }
+
+				/* guides read as a row of chips rather than a sidebar */
+				#display_help_links ul {
+					display: flex;
+					flex-wrap: wrap;
+					justify-content: center;
+					gap: 6px;
+				}
+
+				#display_help_links li > div { margin-bottom: 0; }
+
+				#display_navigation { margin-top: 12px; }
 			}
 		</style>
 		<script src="js/quest.js"></script>
 	</head>
 	<body>
-		<div style="width: 80%; margin-left: auto; margin-right: auto;">
+		<div class="page">
 			
-			<div>
-				<img src="source/heroquest-logo.png" />
-				<br>
-				<h1 style="color: #ffffff;">Digital Dungeon Navigator</h1>
+			<div class="site_head">
+				<img src="source/heroquest-logo.png" alt="HeroQuest" />
+				<h1>Digital Dungeon Navigator</h1>
 				<div class="ui_switch">
 					<a href="modern.html" title="Responsive layout, explored-room tracking, resumable links">Modern interface &rarr;</a>
 				</div>
 			</div>
 			
-			<table>
-				<tr>
-					<td>
+			<div class="panel">
+				<div class="layout">
+					<div class="col_menu">
 						<div id="main_menu_container" class="mainMenuContainer">
 							<ul id="main_menu">
 								
 							</ul>
 						</div>
-					</td>
-					<td>
+					</div>
+					<div class="col_room">
 						<div id="display_room">
-							<p style="margin-top: 100px;">
-								<h1 style="color: #ffffff; max-width: 400px; margin-left: auto; margin-right: auto;">Welcome!<br>Please select a quest from the menu to the left.</h1>
-							</p>
+							<div class="welcome">
+								Welcome!<br>Please select a quest from the menu.
+							</div>
 						</div>
-					</td>
-					<td>
+					</div>
+					<div class="col_guides">
 						<div id="display_help_links">
 							<ul id="help_link_list">
 							
 							</ul>
 						</div>
-					</td>
-				</tr>
-				<tr>
-					<td colspan="3">
-						<div id="display_navigation">
-						</div>
-					</td>
-				<tr>
-			</table>
+					</div>
+				</div>
+				<div id="display_navigation">
+				</div>
+			</div>
 			
 			
 			<p class="rights_information">
@@ -225,7 +328,7 @@
 			</div>
 		</div>
 		
-		<div id="help_popup" class="helpOff">
+		<div id="help_popup" class="helpOff" onclick="javascript:hideHelp()">
 		
 		</div>
 		
@@ -271,6 +374,12 @@
 					break;
 				}
 				loadHelp(questPack);
+				
+				// Stacked on a narrow screen the menu sits above the room, so picking
+				// a quest would otherwise leave the map off-screen.
+				if(window.matchMedia && window.matchMedia('(max-width: 860px)').matches) {
+					document.getElementById('display_room').scrollIntoView({block: 'start'});
+				}
 			}
 			
 			function loadRoom(questPack, quest, room) {
@@ -278,6 +387,7 @@
 					while(currentRoom.firstChild) currentRoom.removeChild(currentRoom.firstChild);
 					var newRoom = document.getElementById(room);
 					var newRoomCopy = newRoom.cloneNode(newRoom);
+					newRoomCopy.onclick = zoomRoom;
 					currentRoom.appendChild(newRoomCopy);
 					
 					var currentNav = document.getElementById('display_navigation');
@@ -313,6 +423,20 @@
 						helpLinks.innerHTML += '<li><div onclick="javascript:showHelp(\''+ helpItem + '\');">' + questList[questPack].help[helpItem].name + '</div></li>';
 					}
 				}
+			}
+			
+			// Shrunk to fit a phone, a landscape map is only a few hundred pixels
+			// across. Tapping it fills the screen, reusing the guide overlay.
+			function zoomRoom() {
+				var shown = document.querySelector('#display_room img');
+				if(!shown) return;
+				var helpPopUp = document.getElementById('help_popup');
+				while(helpPopUp.firstChild) helpPopUp.removeChild(helpPopUp.firstChild);
+				var blownUp = shown.cloneNode(true);
+				blownUp.removeAttribute('id');      /* keep getElementById(room) unambiguous */
+				blownUp.onclick = null;
+				helpPopUp.appendChild(blownUp);
+				helpPopUp.className = 'helpOn';
 			}
 			
 			function showHelp(helpIndex) {
