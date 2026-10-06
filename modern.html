@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HeroQuest Digital Dungeon Navigator</title>
+<style>
+  :root{
+    --bg:#13100a; --panel:#1d1810; --panel-2:#262015; --line:#3a2f1c;
+    --ink:#efe4cc; --dim:#8d7c5e; --muted:#a79270;
+    --gold:#c9a227; --gold-dim:#8a6f1a; --seen:#4a7a3a; --here:#c9a227;
+    --pad:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:15px/1.45 "Iowan Old Style","Palatino Linotype",Georgia,serif;
+    display:flex; flex-direction:column; overscroll-behavior:none;
+  }
+  header{
+    display:flex; align-items:center; gap:10px; padding:8px var(--pad);
+    background:linear-gradient(#241d12,#191409); border-bottom:1px solid var(--line);
+    padding-top:max(8px,env(safe-area-inset-top));
+  }
+  header img{height:30px; width:auto}
+  header .title{font-weight:700; letter-spacing:.5px; color:var(--gold); font-size:15px}
+  header .crumb{color:#a79270; font-size:13px; margin-left:auto; text-align:right; line-height:1.2}
+  header .crumb b{color:var(--ink); font-weight:600}
+
+  button{font:inherit; color:inherit; background:none; border:0; cursor:pointer}
+  .btn{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:8px;
+    padding:9px 13px; color:var(--ink); min-height:42px;
+  }
+  .btn:hover{border-color:var(--gold-dim)}
+  .btn.ghost{background:none}
+  header .swap{
+    font-size:12px; color:var(--muted); text-decoration:none; white-space:nowrap;
+    border:1px solid var(--line); border-radius:6px; padding:4px 9px;
+  }
+  header .swap:hover{border-color:var(--gold-dim); color:var(--ink)}
+
+  main{flex:1; display:flex; min-height:0; position:relative}
+
+  /* ---------- quest picker ---------- */
+  #picker{
+    position:absolute; inset:0; z-index:20; overflow:auto; padding:var(--pad);
+    background:var(--bg); -webkit-overflow-scrolling:touch;
+  }
+  #picker.hidden{display:none}
+  .lead{color:#a79270; margin:2px 0 14px; font-size:14px}
+  .pack{border:1px solid var(--line); border-radius:10px; margin-bottom:10px; overflow:hidden; background:var(--panel)}
+  .pack > h2{
+    margin:0; font-size:15px; letter-spacing:.3px; color:var(--gold);
+    padding:12px 14px; background:var(--panel-2); cursor:pointer;
+    display:flex; align-items:center; gap:8px;
+  }
+  .pack > h2 .count{margin-left:auto; font-size:12px; color:#8d7c5e; font-weight:400}
+  .pack > h2 .chev{transition:transform .15s; color:#8d7c5e}
+  .pack.open > h2 .chev{transform:rotate(90deg)}
+  .quests{display:none; padding:8px}
+  .pack.open .quests{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:8px}
+  .qbtn{
+    text-align:left; background:var(--panel-2); border:1px solid var(--line);
+    border-radius:8px; padding:11px 12px; display:flex; align-items:center; gap:10px;
+  }
+  .qbtn:hover{border-color:var(--gold-dim)}
+  .qbtn .n{color:var(--gold-dim); font-variant-numeric:tabular-nums; font-size:13px; min-width:1.6em}
+  .qbtn .nm{flex:1}
+  .qbtn .pg{font-size:11px; color:#7d6e52}
+  .qbtn .pg.done{color:var(--seen)}
+  .guides{display:flex; flex-wrap:wrap; gap:8px; padding:0 8px 10px}
+  .pack:not(.open) .guides{display:none}
+  .guides .btn{font-size:13px; padding:7px 11px; min-height:0}
+
+  /* ---------- room view ---------- */
+  #view{flex:1; display:flex; flex-direction:column; min-width:0}
+  #stage{
+    flex:1; position:relative; overflow:hidden; background:#07060a;
+    display:flex; align-items:center; justify-content:center;
+  }
+  #stage img{
+    position:absolute; left:50%; top:50%; transform-origin:center center;
+    image-orientation:from-image;   /* scans carry EXIF orientation; honour it */
+    background:#fff; border-radius:2px;
+  }
+  #hint{position:absolute; color:#6b5c42; font-size:14px; padding:20px; text-align:center}
+
+  #nav{
+    border-top:1px solid var(--line); background:linear-gradient(#1b1610,#141009);
+    padding:10px var(--pad); padding-bottom:max(10px,env(safe-area-inset-bottom));
+  }
+  .navrow{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .navlabel{color:#8d7c5e; font-size:12px; text-transform:uppercase; letter-spacing:.9px}
+  .exits{display:flex; gap:8px; flex-wrap:wrap; flex:1}
+  .exit{
+    background:var(--panel-2); border:1px solid var(--gold-dim); border-radius:8px;
+    padding:10px 16px; min-width:52px; min-height:46px; font-size:16px; font-weight:600;
+    color:var(--gold); display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .exit:hover{background:#332a18}
+  .exit.seen{border-color:var(--line); color:#9c8a68}
+  .exit .dot{width:6px; height:6px; border-radius:50%; background:var(--seen); display:none}
+  .exit.seen .dot{display:block}
+  .tools{display:flex; gap:8px; align-items:center}
+  .prog{font-size:12px; color:#8d7c5e; font-variant-numeric:tabular-nums; white-space:nowrap}
+
+  /* ---------- lightbox for guides ---------- */
+  #lb{position:fixed; inset:0; background:#000000ee; z-index:40; display:none; align-items:center; justify-content:center; padding:10px}
+  #lb.on{display:flex}
+  #lb img{max-width:100%; max-height:100%; object-fit:contain; background:#fff; border-radius:3px}
+  #lb .close{position:absolute; top:calc(10px + env(safe-area-inset-top)); right:12px; font-size:26px; color:#fff; padding:8px 14px}
+
+  @media (max-width:560px){
+    header .crumb{font-size:12px}
+    header .swap{font-size:11px; padding:3px 7px}
+    .navlabel{display:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="source/heroquest-logo.png" alt="">
+  <span class="title">Dungeon Navigator</span>
+  <a class="swap" href="index.html" title="The original 2017 interface">Classic</a>
+  <span class="crumb" id="crumb"></span>
+</header>
+
+<main>
+  <div id="view">
+    <div id="stage"><div id="hint">Choose a quest to begin.</div></div>
+    <div id="nav">
+      <div class="navrow">
+        <button class="btn ghost" id="backBtn" title="Quest list">&#9776; Quests</button>
+        <span class="navlabel">Exits</span>
+        <div class="exits" id="exits"></div>
+        <div class="tools">
+          <span class="prog" id="prog"></span>
+          <button class="btn ghost" id="resetBtn" title="Forget explored rooms">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="picker"></div>
+</main>
+
+<div id="lb"><button class="close" id="lbClose">&times;</button><img id="lbImg" alt=""></div>
+
+<script src="js/quest.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var picker = document.getElementById('picker'),
+      stage  = document.getElementById('stage'),
+      exits  = document.getElementById('exits'),
+      crumb  = document.getElementById('crumb'),
+      prog   = document.getElementById('prog'),
+      hint   = document.getElementById('hint'),
+      lb     = document.getElementById('lb'),
+      lbImg  = document.getElementById('lbImg');
+
+  var cur = null;            // {pack, quest, room}
+  var img = null;            // current <img>
+  var natural = {w:0, h:0};
+
+  // ---- explored-room memory (per quest). Safe if storage is unavailable. ----
+  var SEEN_KEY = 'hqddn.seen.v1';
+  function loadSeen(){
+    try { return JSON.parse(localStorage.getItem(SEEN_KEY)) || {}; }
+    catch(e){ return {}; }
+  }
+  function saveSeen(s){
+    try { localStorage.setItem(SEEN_KEY, JSON.stringify(s)); } catch(e){}
+  }
+  var seen = loadSeen();
+  function qid(pk,qk){ return pk + '|' + qk; }
+  function markSeen(pk,qk,rk){
+    var k = qid(pk,qk);
+    if(!seen[k]) seen[k] = {};
+    seen[k][rk] = 1;
+    saveSeen(seen);
+  }
+  function isSeen(pk,qk,rk){ return !!(seen[qid(pk,qk)] && seen[qid(pk,qk)][rk]); }
+  function seenCount(pk,qk){ var o = seen[qid(pk,qk)]; return o ? Object.keys(o).length : 0; }
+
+  function roomCount(pk,qk){ return Object.keys(questList[pk].quests[qk].rooms).length; }
+  function conns(pk,qk,rk){
+    var c = questList[pk].quests[qk].rooms[rk].connections || '';
+    return c.split(',').filter(Boolean);
+  }
+  function src(pk,qk,rk){
+    var p = questList[pk];
+    // a quest folder may be empty when room files carry their own sub-folder
+    return [p.folder, p.quests[qk].folder, p.quests[qk].rooms[rk].file]
+             .filter(Boolean).join('/');
+  }
+
+  // The button shows the number printed beside the door, nothing else. Keys are
+  // r<n> in most packs; Dark Company spans 13 sections so its keys are
+  // s<section>p<page>, and the label is the page part.
+  var SECKEY = /^s(\d+)p(\d+)$/;
+  function exitLabel(toKey){
+    var t = SECKEY.exec(toKey);
+    return t ? t[2] : toKey.slice(1);
+  }
+  // Two Dark Company rooms have a door to the same page number in two different
+  // sections, so the tooltip spells the destination out.
+  function exitTitle(toKey){
+    var t = SECKEY.exec(toKey);
+    return t ? 'Section ' + t[1] + ', page ' + t[2] : 'Room ' + toKey.slice(1);
+  }
+
+  // ---------- quest picker ----------
+  function buildPicker(){
+    var h = '<p class="lead">Pick a quest. Each screen shows only the room your Heroes can actually see &mdash; the numbers are the exits.</p>';
+    for(var pk in questList){
+      var p = questList[pk], n = Object.keys(p.quests).length;
+      h += '<section class="pack" data-pack="'+esc(pk)+'">';
+      h +=   '<h2><span class="chev">&#9656;</span>'+esc(p.name)+'<span class="count">'+n+(n===1?' quest':' quests')+'</span></h2>';
+      h +=   '<div class="quests">';
+      var i = 0;
+      for(var qk in p.quests){
+        i++;
+        var tot = roomCount(pk,qk), sc = seenCount(pk,qk);
+        var done = sc >= tot && tot > 0;
+        h += '<button class="qbtn" data-pack="'+esc(pk)+'" data-quest="'+esc(qk)+'">'+
+               '<span class="n">'+i+'</span>'+
+               '<span class="nm">'+esc(p.quests[qk].name)+'</span>'+
+               '<span class="pg'+(done?' done':'')+'">'+(sc?sc+'/'+tot:'')+'</span>'+
+             '</button>';
+      }
+      h +=   '</div>';
+      if(p.help && Object.keys(p.help).length){
+        h += '<div class="guides">';
+        for(var hk in p.help){
+          h += '<button class="btn" data-guide="'+esc(p.folder+'/'+p.help[hk].file)+'">'+esc(p.help[hk].name)+'</button>';
+        }
+        h += '</div>';
+      }
+      h += '</section>';
+    }
+    picker.innerHTML = h;
+  }
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+  picker.addEventListener('click', function(e){
+    var head = e.target.closest('.pack > h2');
+    if(head){ head.parentNode.classList.toggle('open'); return; }
+    var g = e.target.closest('[data-guide]');
+    if(g){ lbImg.src = g.getAttribute('data-guide'); lb.classList.add('on'); return; }
+    var b = e.target.closest('.qbtn');
+    if(b){ openQuest(b.getAttribute('data-pack'), b.getAttribute('data-quest')); }
+  });
+
+  // ---------- room display ----------
+  function openQuest(pk,qk){
+    var first = Object.keys(questList[pk].quests[qk].rooms)[0];
+    picker.classList.add('hidden');
+    showRoom(pk,qk,first);
+  }
+
+  function showRoom(pk,qk,rk){
+    cur = {pack:pk, quest:qk, room:rk};
+    markSeen(pk,qk,rk);
+
+    if(hint) hint.style.display = 'none';
+
+    // The 'rotation' flags in the data are legacy. Every room image they mark is
+    // stored with an EXIF Orientation tag, which the browser already applies (and
+    // reports through naturalWidth/naturalHeight), so rotating again would turn
+    // the map on its side. Honour EXIF and leave the flags alone.
+    var deg = 0;
+
+    var next = new Image();
+    next.alt = questList[pk].quests[qk].name + ' - ' + exitTitle(rk);
+    next.onload = function(){
+      natural = {w: next.naturalWidth, h: next.naturalHeight};
+      if(img && img.parentNode) img.parentNode.removeChild(img);
+      img = next;
+      img.dataset.deg = deg;   // 0: EXIF already orients these scans
+      stage.appendChild(img);
+      fit();
+    };
+    next.src = src(pk,qk,rk);
+
+    // exits
+    var cs = conns(pk,qk,rk);
+    exits.innerHTML = cs.map(function(c){
+      return '<button class="exit'+(isSeen(pk,qk,c)?' seen':'')+'" data-room="'+esc(c)+
+             '" title="'+esc(exitTitle(c))+'">'+
+             esc(exitLabel(c))+'<span class="dot"></span></button>';
+    }).join('') || '<span class="prog">No exits from here.</span>';
+
+    crumb.innerHTML = esc(questList[pk].name)+'<br><b>'+esc(questList[pk].quests[qk].name)+'</b>';
+    prog.textContent = seenCount(pk,qk)+' / '+roomCount(pk,qk)+' rooms';
+
+    // deep link, so a reload or a bookmark comes back to this room
+    var h = '#' + encodeURIComponent(pk) + '/' + qk + '/' + rk;
+    if(location.hash !== h){ settingHash = true; location.hash = h; }
+  }
+
+  // ---------- deep links: #pack/quest/room ----------
+  var settingHash = false;
+  function applyHash(){
+    if(settingHash){ settingHash = false; return; }
+    var m = /^#([^/]+)\/([^/]+)\/([^/]+)$/.exec(location.hash || '');
+    if(!m) return false;
+    var pk = decodeURIComponent(m[1]), qk = m[2], rk = m[3];
+    if(questList[pk] && questList[pk].quests[qk] && questList[pk].quests[qk].rooms[rk]){
+      picker.classList.add('hidden');
+      showRoom(pk,qk,rk);
+      return true;
+    }
+    return false;
+  }
+  window.addEventListener('hashchange', applyHash);
+
+  // Rotation-aware fit: a 90/270 turn swaps the footprint, so scale against
+  // the swapped box and let the transform spin it about its own centre.
+  function fit(){
+    if(!img) return;
+    var deg = +img.dataset.deg || 0, turned = (deg === 90 || deg === 270);
+    var cw = stage.clientWidth - 16, ch = stage.clientHeight - 16;
+    var dw = turned ? natural.h : natural.w,
+        dh = turned ? natural.w : natural.h;
+    if(!dw || !dh || cw <= 0 || ch <= 0) return;
+    var s = Math.min(cw/dw, ch/dh);
+    img.style.width  = (natural.w * s) + 'px';
+    img.style.height = (natural.h * s) + 'px';
+    img.style.transform = 'translate(-50%,-50%)' + (deg ? ' rotate('+deg+'deg)' : '');
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', function(){ setTimeout(fit, 150); });
+
+  exits.addEventListener('click', function(e){
+    var b = e.target.closest('[data-room]');
+    if(b && cur) showRoom(cur.pack, cur.quest, b.getAttribute('data-room'));
+  });
+
+  document.getElementById('backBtn').addEventListener('click', function(){
+    buildPicker();
+    var open = cur && document.querySelector('.pack[data-pack="'+cur.pack.replace(/"/g,'\\"')+'"]');
+    if(open) open.classList.add('open');
+    picker.classList.remove('hidden');
+    if(location.hash){ settingHash = true; location.hash = ''; }
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', function(){
+    if(!cur) return;
+    if(!confirm('Forget which rooms you have explored in this quest?')) return;
+    delete seen[qid(cur.pack,cur.quest)];
+    saveSeen(seen);
+    showRoom(cur.pack, cur.quest, cur.room);
+  });
+
+  // keyboard: 1..9 take the matching exit, Esc opens the quest list
+  document.addEventListener('keydown', function(e){
+    if(lb.classList.contains('on')){ if(e.key==='Escape') lb.classList.remove('on'); return; }
+    if(e.key === 'Escape'){ document.getElementById('backBtn').click(); return; }
+    var n = parseInt(e.key,10);
+    if(n >= 1 && n <= 9){
+      var b = exits.querySelectorAll('[data-room]')[n-1];
+      if(b) b.click();
+    }
+  });
+
+  lb.addEventListener('click', function(){ lb.classList.remove('on'); });
+
+  buildPicker();
+  var firstPack = picker.querySelector('.pack');
+  if(firstPack) firstPack.classList.add('open');
+  applyHash();
+})();
+</script>
+</body>
+</html>

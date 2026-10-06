@@ -40,7 +40,10 @@ was re-encoded. The renames were metadata only.
 
 ## 3. Running it
 
-Any static web server:
+Live at **<https://renangrossi.github.io/heroquest-dungeon-navigator/>** — no
+install, works on a tablet beside the table.
+
+To run it locally, any static web server:
 
     cd "Heroquest digital dungeon navigator IMPROVED"
     python3 -m http.server 8731
@@ -50,8 +53,8 @@ Opening `index.html` straight off disk (`file://`) also works in most browsers.
 
 | File | Purpose |
 |---|---|
-| `index.html` | The navigator. Use this one. |
-| `index-classic.html` | The original 2017 interface, with the same data fixes applied. |
+| `index.html` | **The navigator.** The classic 2017 interface, with every data fix applied. |
+| `modern.html` | Alternative interface: responsive, dark, explored-room tracking, resumable links. |
 | `creator.html` | Authoring tool that emits quest data to paste into `js/quest.js`. |
 | `js/quest.js` | All quest data. The only file you edit to add content. |
 
@@ -88,8 +91,8 @@ but the space→hyphen rename broke it everywhere.
 | Dead ends | 4 rooms had no exits at all; you could walk in and be stuck — now 0 |
 | Rotation | See below |
 | Guide images | 8 of 9 pointed at files that no longer exist; rewired to what is on disk, and the co-op guide copied into `main-quest/`, which had none |
-| `index.html` | Rewritten: responsive, dark, touch-sized targets, explored-room tracking, deep links |
-| `index-classic.html` | Same data fixes: clean image paths, numeric exit labels, EXIF orientation, broken rotation CSS removed |
+| `index.html` (classic) | Clean image paths, numeric exit labels, EXIF orientation, broken rotation CSS removed |
+| `modern.html` | New alternative interface: responsive, dark, touch-sized targets, explored-room tracking, deep links |
 
 ### The rotation trap
 
@@ -175,14 +178,19 @@ of the graph implied before those pages were looked at.
 
 ### Using the navigator
 
+Both interfaces read the same data and link to each other from the header.
+The classic one is the default; the points below marked *(modern)* are extras
+`modern.html` adds.
+
 - Pick a pack, then a quest. The first room opens.
 - The buttons along the bottom are the exits; they match the numbers printed on
   the map. Keys `1`–`9` work too.
-- Rooms already entered are marked, and each quest shows `seen / total`. Progress
-  lives in browser local storage, per quest. **Reset** clears one quest.
-- The URL carries `#pack/quest/room`, so a reload or bookmark returns to the exact
-  room — useful when a tablet sleeps mid-game.
-- `Esc` (or **Quests**) returns to the quest list.
+- *(modern)* Rooms already entered are marked, and each quest shows
+  `seen / total`. Progress lives in browser local storage, per quest.
+  **Reset** clears one quest.
+- *(modern)* The URL carries `#pack/quest/room`, so a reload or bookmark
+  returns to the exact room — useful when a tablet sleeps mid-game.
+- *(modern)* `Esc` (or **Quests**) returns to the quest list.
 
 ### Data format (`js/quest.js`)
 
@@ -285,7 +293,8 @@ four original packs, and that §6 did for Dark Company.
   else — no monsters, traps, treasure or wandering-monster logic. Playing the
   official campaigns solo still needs a GM-less ruleset applied by hand. The Dave
   Morris quests in `../HeroQuest/` are the only genuinely solo-designed material.
-- **`index-classic.html` keeps its fixed-width 2017 layout**, so a wide room scan
-  (long corridors, in several packs) runs past the panel and the page scrolls
-  sideways. Pre-existing behaviour of that interface; `index.html` scales each
-  room to fit instead.
+- **The classic interface keeps its fixed-width 2017 layout**, so a wide room
+  scan (long corridors, in several packs) runs past the panel and the page
+  scrolls sideways. Pre-existing behaviour of that interface; `modern.html`
+  scales each room to fit instead, and the two link to each other from the
+  header.
